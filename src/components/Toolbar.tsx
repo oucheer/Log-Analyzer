@@ -15,6 +15,11 @@ interface ToolbarProps {
   logFiles: LogFile[]
   currentFileIndex: number
   onFileChange: (index: number) => void
+  onOpenConfig: () => void
+  onOpenFloodFilter: () => void
+  onOpenChart: () => void
+  onOpenSyntaxCheck: () => void
+  onOpenTaskReport: () => void
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -29,9 +34,15 @@ const Toolbar: React.FC<ToolbarProps> = ({
   fontSize,
   logFiles,
   currentFileIndex,
-  onFileChange
+  onFileChange,
+  onOpenConfig,
+  onOpenFloodFilter,
+  onOpenChart,
+  onOpenSyntaxCheck,
+  onOpenTaskReport
 }) => {
   const [showThemeMenu, setShowThemeMenu] = useState(false)
+  const [showToolsMenu, setShowToolsMenu] = useState(false)
 
   return (
     <div className="toolbar">
@@ -65,8 +76,72 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </select>
         </div>
       )}
-      
+
       <div className="toolbar-right">
+        <div className="tools-wrapper" style={{ position: 'relative' }}>
+          <button
+            className="toolbar-btn tools-btn"
+            onClick={() => setShowToolsMenu(!showToolsMenu)}
+            title="工具"
+          >
+            <span className="icon">🛠️</span>
+            工具
+          </button>
+          {showToolsMenu && (
+            <div className="tools-menu">
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenConfig()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">⚙️</span>
+                系统配置
+              </button>
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenFloodFilter()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">🚫</span>
+                刷屏过滤
+              </button>
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenChart()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">📊</span>
+                可视化图表
+              </button>
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenSyntaxCheck()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">🔍</span>
+                语法检查
+              </button>
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenTaskReport()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">📋</span>
+                任务汇报
+              </button>
+            </div>
+          )}
+        </div>
         <div className="theme-wrapper" style={{ position: 'relative' }}>
           <button
             className="toolbar-btn theme-btn"

@@ -1,0 +1,223 @@
+.config-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 450px;
+  background: var(--bg-secondary, #2d2d2d);
+  border-left: 1px solid var(--border-color, #444);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.config-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color, #444);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.config-header h3 {
+  margin: 0;
+  color: var(--text-primary, #fff);
+  font-size: 16px;
+}
+
+.config-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.import-btn,
+.export-btn,
+.toggle-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.import-btn {
+  background: #2196f3;
+  color: white;
+}
+
+.import-btn:hover {
+  background: #1976d2;
+}
+
+.export-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.export-btn:hover {
+  background: #43a047;
+}
+
+.toggle-btn {
+  background: var(--bg-hover, #3a3a3a);
+  color: var(--text-primary, #fff);
+}
+
+.toggle-btn:hover {
+  background: #4a4a4a;
+}
+
+.toggle-btn.active {
+  background: var(--accent-color, #2196f3);
+  color: white;
+}
+
+.import-status {
+  padding: 10px 16px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.import-status.success {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+  border-bottom: 1px solid #4caf50;
+}
+
+.import-status.error {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border-bottom: 1px solid #f44336;
+}
+
+.config-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.config-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-intro h4 {
+  margin: 0;
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+}
+
+.config-intro > p {
+  margin: 0;
+  color: var(--text-secondary, #aaa);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.config-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-primary, #1e1e1e);
+  border-radius: 6px;
+}
+
+.feature-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.feature-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.feature-text strong {
+  color: var(--text-primary, #fff);
+  font-size: 13px;
+}
+
+.feature-text span {
+  color: var(--text-secondary, #888);
+  font-size: 12px;
+}
+
+.primary-btn {
+  padding: 12px 20px;
+  background: var(--accent-color, #2196f3);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.primary-btn:hover {
+  background: #1976d2;
+}
+
+.config-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.config-preview h4 {
+  margin: 0;
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+}
+
+.config-json {
+  flex: 1;
+  margin: 0;
+  padding: 12px;
+  background: var(--bg-primary, #1e1e1e);
+  border-radius: 6px;
+  color: var(--text-primary, #fff);
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #aaa);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: var(--bg-hover, #3a3a3a);
+  color: var(--text-primary, #fff);
+}

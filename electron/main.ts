@@ -113,3 +113,40 @@ ipcMain.handle('save-json', async (_, data: any, defaultName: string) => {
   }
   return false
 })
+
+ipcMain.handle('load-json', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      { name: 'JSON Files', extensions: ['json'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  })
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    const filePath = result.filePaths[0]
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8')
+      return { filePath, content, success: true }
+    } catch (err) {
+      return { filePath, content: null, success: false, error: (err as Error).message }
+    }
+  }
+  return null
+})
+
+ipcMain.handle('save-log', async (_, content: string, defaultName: string) => {
+  const result = await dialog.showSaveDialog({
+    defaultPath: defaultName,
+    filters: [
+      { name: 'Log Files', extensions: ['log', 'txt'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  })
+
+  if (!result.canceled && result.filePath) {
+    fs.writeFileSync(result.filePath, content, 'utf-8')
+    return true
+  }
+  return false
+})
