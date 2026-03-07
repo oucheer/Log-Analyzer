@@ -1,17 +1,21 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { TaskReport } from '../types/taskReport'
+import { WorkflowAnalysis } from '../types'
+import { WorkflowAnalyzer } from '../utils/WorkflowAnalyzer'
 import './ChartPanel.css'
 
 interface ChartPanelProps {
   taskReports: TaskReport[]
   onClose?: () => void
+  logContent?: string
 }
 
-const ChartPanel: React.FC<ChartPanelProps> = ({ taskReports, onClose }) => {
-  const [chartType, setChartType] = useState<'flowchart' | 'sequence' | 'gantt' | 'status'>('flowchart')
+const ChartPanel: React.FC<ChartPanelProps> = ({ taskReports, onClose, logContent = '' }) => {
+  const [chartType, setChartType] = useState<'flowchart' | 'sequence' | 'gantt' | 'status' | 'workflow'>('flowchart')
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(
     taskReports.length > 0 ? taskReports[0].taskId : null
   )
+  const [workflowAnalysis, setWorkflowAnalysis] = useState<WorkflowAnalysis | null>(null)
 
   const selectedTask = taskReports.find(t => t.taskId === selectedTaskId) || null
 
@@ -26,11 +30,20 @@ const ChartPanel: React.FC<ChartPanelProps> = ({ taskReports, onClose }) => {
       : 0
   }
 
+  const handleAnalyzeWorkflow = () => {
+    if (logContent.length > 0) {
+      const analysis = WorkflowAnalyzer.analyzeLog(logContent, 50)
+      setWorkflowAnalysis(analysis)
+    }
+  }
+
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'completed': return '#4caf50'
       case 'failed': return '#f44336'
       case 'running': return '#2196f3'
+      case 'skipped': return '#9e9e9e'
+      case 'pending': return '#ffc107'
       default: return '#9e9e9e'
     }
   }
@@ -180,15 +193,201 @@ const ChartPanel: React.FC<ChartPanelProps> = ({ taskReports, onClose }) => {
     )
   }
 
+  const renderWorkflowAnalysis = () => {
+    if (!logContent) {
+      return (
+        <div className="chart-empty">
+          <p>暂无日志内容可供分析</p>
+          <p className="empty-hint">请先打开日志文件</p>
+        </div>
+      )
+    }
+
+    if (!workflowAnalysis) {
+      return (
+        <div className="workflow-analyze-prompt">
+          <div className="analyze-icon">🔍</div>
+          <h4>智能作业流程分析</h4>
+          <p>从日志中自动提取作业步骤，分析执行状态，识别瓶颈和异常</p>
+          <button className="analyze-btn" onClick={handleAnalyzeWorkflow}>
+            开始分析
+          </button>
+        </div>
+      )
+    }
+
+    const nodeWidth = 140
+    const nodeHeight = 45
+    const padding = 20
+    const gap = 30
+    const cols = 3
+    const svgWidth = cols * (nodeWidth + gap) + padding * 2
+    const rows = Math.ceil(workflowAnalysis.steps.length / cols)
+    const svgHeight = rows * (nodeHeight + gap) + padding * 2 + 60
+
+    return (
+      <div className="workflow-analysis-result">
+        <div className="workflow-header">
+          <div className="workflow-title">
+            <h4>{workflowAnalysis.name}</h4>
+            <span className="workflow-time">分析时间: {new Date(workflowAnalysis.generatedAt).toLocaleTimeString()}</span>
+          </div>
+          <button className="reanalyze-btn" onClick={handleAnalyzeWorkflow}>重新分析</button>
+        </div>
+
+        <div className="workflow-stats">
+          <div className="stat-card">
+            <span className="stat-value">{workflowAnalysis.steps.length}</span>
+            <span className="stat-label">总步骤</span>
+          </div>
+          <div className="stat-card success">
+            <span className="stat-value">{workflowAnalysis.completedSteps}</span>
+            <span className="stat-label">已完成</span>
+          </div>
+          <div className="stat-card error">
+            <span className="stat-value">{workflowAnalysis.failedSteps}</span>
+            <span className="stat-label">失败</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-value">{workflowAnalysis.metrics.successRate.toFixed(1)}%</span>
+            <span className="stat-label">成功率</span>
+          </div>
+        </div>
+
+        <svg className="workflow-flowchart" viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
+          <defs>
+            <marker id="wf-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#666" />
+            </marker>
+          </defs>
+
+          {workflowAnalysis.steps.map((step, index) => {
+            const col = index % cols
+            const row = Math.floor(index / cols)
+            const x = padding + col * (nodeWidth + gap)
+            const y = padding + 50 + row * (nodeHeight + gap)
+            const isLastInRow = col === cols - 1
+            const hasNext = index < workflowAnalysis.steps.length - 1
+            
+            return (
+              <g key={step.id}>
+                <rect
+                  x={x}
+                  y={y}
+                  width={nodeWidth}
+                  height={nodeHeight}
+                  rx="6"
+                  fill={getStatusColor(step.status)}
+                  stroke={step.status === 'failed' ? '#d32f2f' : 'none'}
+                  strokeWidth="2"
+                />
+                <text
+                  x={x + nodeWidth / 2}
+                  y={y + nodeHeight / 2 - 5}
+                  textAnchor="middle"
+                  fill="white"
+                  fontWeight="bold"
+                  fontSize="11"
+                >
+                  {step.name.length > 15 ? step.name.substring(0, 15) + '...' : step.name}
+                </text>
+                {step.duration && (
+                  <text
+                    x={x + nodeWidth / 2}
+                    y={y + nodeHeight / 2 + 12}
+                    textAnchor="middle"
+                    fill="white"
+                    fontSize="9"
+                    opacity="0.8"
+                  >
+                    {(step.duration / 1000).toFixed(1)}s
+                  </text>
+                )}
+                {!isLastInRow && hasNext && (
+                  <line
+                    x1={x + nodeWidth}
+                    y1={y + nodeHeight / 2}
+                    x2={x + nodeWidth + gap}
+                    y2={y + nodeHeight / 2}
+                    stroke="#666"
+                    strokeWidth="2"
+                    markerEnd="url(#wf-arrow)"
+                  />
+                )}
+                {isLastInRow && hasNext && (
+                  <line
+                    x1={x + nodeWidth / 2}
+                    y1={y + nodeHeight}
+                    x2={x + nodeWidth / 2}
+                    y2={y + nodeHeight + gap}
+                    stroke="#666"
+                    strokeWidth="2"
+                    strokeDasharray="4,2"
+                  />
+                )}
+              </g>
+            )
+          })}
+        </svg>
+
+        {workflowAnalysis.bottlenecks.length > 0 && (
+          <div className="analysis-section bottlenecks">
+            <h5>⚠️ 性能瓶颈</h5>
+            <ul>
+              {workflowAnalysis.bottlenecks.map((bottleneck, i) => (
+                <li key={i}>{bottleneck}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {workflowAnalysis.anomalies.length > 0 && (
+          <div className="analysis-section anomalies">
+            <h5>🔴 异常检测</h5>
+            <ul>
+              {workflowAnalysis.anomalies.map((anomaly, i) => (
+                <li key={i}>{anomaly}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {workflowAnalysis.metrics.averageStepDuration > 0 && (
+          <div className="analysis-section metrics">
+            <h5>📊 关键指标</h5>
+            <div className="metrics-grid">
+              <div className="metric-item">
+                <span className="metric-label">平均步骤耗时</span>
+                <span className="metric-value">{(workflowAnalysis.metrics.averageStepDuration / 1000).toFixed(2)}s</span>
+              </div>
+              {workflowAnalysis.metrics.longestStep && (
+                <div className="metric-item">
+                  <span className="metric-label">最长步骤</span>
+                  <span className="metric-value">{workflowAnalysis.metrics.longestStep}</span>
+                </div>
+              )}
+              {workflowAnalysis.metrics.mostFrequentError && (
+                <div className="metric-item">
+                  <span className="metric-label">高频错误</span>
+                  <span className="metric-value error">{workflowAnalysis.metrics.mostFrequentError}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="chart-panel">
       <div className="chart-header">
         <h3>📊 可视化图表</h3>
         <div className="chart-controls">
           <div className="chart-type-selector">
-            {(['flowchart', 'sequence', 'gantt', 'status'] as const).map(type => (
+            {(['flowchart', 'sequence', 'gantt', 'status', 'workflow'] as const).map(type => (
               <button key={type} className={chartType === type ? 'active' : ''} onClick={() => setChartType(type)}>
-                {type === 'flowchart' ? '流程图' : type === 'sequence' ? '时序图' : type === 'gantt' ? '甘特图' : '状态图'}
+                {type === 'flowchart' ? '流程图' : type === 'sequence' ? '时序图' : type === 'gantt' ? '甘特图' : type === 'status' ? '状态图' : '智能分析'}
               </button>
             ))}
           </div>
@@ -208,13 +407,25 @@ const ChartPanel: React.FC<ChartPanelProps> = ({ taskReports, onClose }) => {
         {chartType === 'sequence' && renderSequenceDiagram()}
         {chartType === 'gantt' && renderGanttChart()}
         {chartType === 'status' && renderStatusChart()}
+        {chartType === 'workflow' && renderWorkflowAnalysis()}
       </div>
 
-      <div className="chart-legend">
-        <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#4caf50' }}></span>成功</span>
-        <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#f44336' }}></span>失败</span>
-        <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#2196f3' }}></span>进行中</span>
-      </div>
+      {chartType !== 'workflow' && (
+        <div className="chart-legend">
+          <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#4caf50' }}></span>成功</span>
+          <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#f44336' }}></span>失败</span>
+          <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#2196f3' }}></span>进行中</span>
+        </div>
+      )}
+      {chartType === 'workflow' && (
+        <div className="chart-legend">
+          <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#4caf50' }}></span>完成</span>
+          <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#f44336' }}></span>失败</span>
+          <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#2196f3' }}></span>进行中</span>
+          <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#ffc107' }}></span>等待</span>
+          <span className="legend-item"><span className="legend-dot" style={{ backgroundColor: '#9e9e9e' }}></span>跳过</span>
+        </div>
+      )}
     </div>
   )
 }

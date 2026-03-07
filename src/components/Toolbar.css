@@ -94,6 +94,7 @@
   border-radius: 4px;
   color: var(--text-primary);
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.2s;
 }
 
@@ -139,6 +140,25 @@
   border-color: var(--accent-color);
   color: #fff;
   font-weight: 500;
+}
+
+.theme-option .theme-color {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.theme-btn .theme-icon {
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+.theme-btn .theme-label {
+  font-size: 13px;
 }
 
 .tools-wrapper {

@@ -22,7 +22,7 @@ export interface SearchResult {
   text: string
 }
 
-export type Theme = 'dark' | 'light'
+export type Theme = 'dark' | 'light' | 'blue' | 'green' | 'purple'
 
 export interface FloodFilterConfig {
   enabled: boolean
@@ -51,6 +51,10 @@ export interface SystemConfig {
     enabled: boolean
     language: string
   }
+  mouseWheel: {
+    speed: number
+    syncOS: boolean
+  }
 }
 
 export const defaultSystemConfig: SystemConfig = {
@@ -73,6 +77,10 @@ export const defaultSystemConfig: SystemConfig = {
   syntaxCheck: {
     enabled: true,
     language: 'javascript'
+  },
+  mouseWheel: {
+    speed: 1,
+    syncOS: true
   }
 }
 
@@ -89,4 +97,90 @@ export interface SyntaxCheckResult {
   errors: SyntaxError[]
   language: string
   timestamp: string
+}
+
+export interface KeywordConfig {
+  id: string
+  keyword: string
+  expectedResult: string
+  description: string
+  category: string
+  enabled: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface KeywordMatchResult {
+  keyword: KeywordConfig
+  matchPosition: { start: number; end: number }
+  actualResult: string
+  isMatch: boolean
+  difference: string | null
+}
+
+export interface CompareReport {
+  id: string
+  inputContent: string
+  matches: KeywordMatchResult[]
+  totalMatches: number
+  passedMatches: number
+  failedMatches: number
+  passRate: number
+  generatedAt: string
+}
+
+export interface ConfigVersion {
+  id: string
+  version: number
+  configs: KeywordConfig[]
+  createdAt: string
+  createdBy: string
+  description: string
+}
+
+export interface AuditLog {
+  id: string
+  action: 'create' | 'update' | 'delete' | 'import' | 'export' | 'compare'
+  target: string
+  operator: string
+  timestamp: string
+  details: string
+  beforeState?: KeywordConfig
+  afterState?: KeywordConfig
+}
+
+export interface CompareOptions {
+  caseSensitive: boolean
+  useRegex: boolean
+  matchAll: boolean
+}
+
+export interface WorkflowStep {
+  id: string
+  name: string
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
+  startTime?: string
+  endTime?: string
+  duration?: number
+  dependencies: string[]
+  result?: string
+  error?: string
+}
+
+export interface WorkflowAnalysis {
+  id: string
+  name: string
+  steps: WorkflowStep[]
+  totalDuration: number
+  completedSteps: number
+  failedSteps: number
+  bottlenecks: string[]
+  anomalies: string[]
+  metrics: {
+    averageStepDuration: number
+    longestStep: string
+    mostFrequentError: string
+    successRate: number
+  }
+  generatedAt: string
 }

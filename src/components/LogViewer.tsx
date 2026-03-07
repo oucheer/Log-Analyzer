@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react'
-import { FixedSizeList as List } from 'react-window'
+import { FixedSizeList as List, ListOnItemsRenderedProps } from 'react-window'
 import { SearchResult, SearchOptions } from '../types'
 import './LogViewer.css'
 
@@ -12,6 +12,7 @@ interface LogViewerProps {
   searchQuery: string
   searchOptions: SearchOptions
   targetLine?: number
+  scrollSpeed?: number
 }
 
 const LogViewer: React.FC<LogViewerProps> = ({
@@ -22,13 +23,31 @@ const LogViewer: React.FC<LogViewerProps> = ({
   currentResultIndex,
   searchQuery,
   searchOptions,
-  targetLine
+  targetLine,
+  scrollSpeed = 1
 }) => {
   const listRef = useRef<List>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerHeight, setContainerHeight] = useState(400)
   const lines = useMemo(() => content.split('\n'), [content])
   const lineCount = lines.length
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (scrollSpeed !== 1 && scrollRef.current) {
+      e.preventDefault()
+      const scrollAmount = e.deltaY * scrollSpeed
+      scrollRef.current.scrollTop += scrollAmount
+    }
+  }, [scrollSpeed])
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (container && scrollSpeed !== 1) {
+      container.addEventListener('wheel', handleWheel, { passive: false })
+      return () => container.removeEventListener('wheel', handleWheel)
+    }
+  }, [handleWheel, scrollSpeed])
 
   const updateHeight = useCallback(() => {
     if (containerRef.current) {
@@ -153,16 +172,19 @@ const LogViewer: React.FC<LogViewerProps> = ({
         <span className="line-count">共 {lineCount.toLocaleString()} 行</span>
         <span className="hint">双击行可复制内容</span>
       </div>
-      <List
-        ref={listRef}
-        height={containerHeight}
-        itemCount={lineCount}
-        itemSize={lineHeight}
-        width="100%"
-        className="log-list"
-      >
-        {Row}
-      </List>
+      <div ref={scrollRef} style={{ flex: 1, overflow: 'hidden' }}>
+        <List
+          ref={listRef}
+          height={containerHeight}
+          itemCount={lineCount}
+          itemSize={lineHeight}
+          width="100%"
+          className="log-list"
+          overscanCount={5}
+        >
+          {Row}
+        </List>
+      </div>
     </div>
   )
 }

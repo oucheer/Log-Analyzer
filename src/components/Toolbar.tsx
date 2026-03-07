@@ -20,6 +20,7 @@ interface ToolbarProps {
   onOpenChart: () => void
   onOpenSyntaxCheck: () => void
   onOpenTaskReport: () => void
+  onOpenKeywordConfig: () => void
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -39,7 +40,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onOpenFloodFilter,
   onOpenChart,
   onOpenSyntaxCheck,
-  onOpenTaskReport
+  onOpenTaskReport,
+  onOpenKeywordConfig
 }) => {
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const [showToolsMenu, setShowToolsMenu] = useState(false)
@@ -139,6 +141,16 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 <span className="option-icon">📋</span>
                 任务汇报
               </button>
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenKeywordConfig()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">🔑</span>
+                关键字配置
+              </button>
             </div>
           )}
         </div>
@@ -148,7 +160,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
             onClick={() => setShowThemeMenu(!showThemeMenu)}
             title="切换主题"
           >
-            {theme === 'dark' ? '🌙' : '☀️'} {theme === 'dark' ? '深色' : '浅色'}
+            <span className="theme-icon">🎨</span>
+            <span className="theme-label">{theme === 'dark' ? '深色' : theme === 'light' ? '浅色' : theme === 'blue' ? '蓝色' : theme === 'green' ? '绿色' : '紫色'}</span>
           </button>
           {showThemeMenu && (
             <div className="theme-menu">
@@ -159,6 +172,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   setShowThemeMenu(false)
                 }}
               >
+                <span className="theme-color" style={{ backgroundColor: '#1e1e1e' }}></span>
                 🌙 深色主题
               </button>
               <button
@@ -168,7 +182,38 @@ const Toolbar: React.FC<ToolbarProps> = ({
                   setShowThemeMenu(false)
                 }}
               >
+                <span className="theme-color" style={{ backgroundColor: '#f5f5f5' }}></span>
                 ☀️ 浅色主题
+              </button>
+              <button
+                className={`theme-option ${theme === 'blue' ? 'active' : ''}`}
+                onClick={() => {
+                  onThemeChange('blue')
+                  setShowThemeMenu(false)
+                }}
+              >
+                <span className="theme-color" style={{ backgroundColor: '#00a8e8' }}></span>
+                🔵 蓝色主题
+              </button>
+              <button
+                className={`theme-option ${theme === 'green' ? 'active' : ''}`}
+                onClick={() => {
+                  onThemeChange('green')
+                  setShowThemeMenu(false)
+                }}
+              >
+                <span className="theme-color" style={{ backgroundColor: '#4caf50' }}></span>
+                🟢 绿色主题
+              </button>
+              <button
+                className={`theme-option ${theme === 'purple' ? 'active' : ''}`}
+                onClick={() => {
+                  onThemeChange('purple')
+                  setShowThemeMenu(false)
+                }}
+              >
+                <span className="theme-color" style={{ backgroundColor: '#9c7cff' }}></span>
+                🟣 紫色主题
               </button>
             </div>
           )}

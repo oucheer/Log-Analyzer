@@ -13,6 +13,7 @@ import FloodFilterPanel from './components/FloodFilterPanel'
 import ChartPanel from './components/ChartPanel'
 import SyntaxCheckPanel from './components/SyntaxCheckPanel'
 import TaskReportPanel from './components/TaskReportPanel'
+import KeywordConfigPanel from './components/KeywordConfigPanel'
 import { floodFilter } from './utils/FloodFilter'
 import { taskReportLogger } from './utils/TaskReportLogger'
 import './App.css'
@@ -50,11 +51,20 @@ function App() {
   const [showSearchDialog, setShowSearchDialog] = useState(false)
   const [targetLine, setTargetLine] = useState<number | undefined>(undefined)
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('theme') as Theme) || 'dark')
+  const [scrollSpeed, setScrollSpeed] = useState<number>(() => {
+    const savedConfig = localStorage.getItem('systemConfig')
+    if (savedConfig) {
+      const config = JSON.parse(savedConfig)
+      return config.mouseWheel?.speed || 1
+    }
+    return 1
+  })
   const [showConfigPanel, setShowConfigPanel] = useState(false)
   const [showFloodFilterPanel, setShowFloodFilterPanel] = useState(false)
   const [showChartPanel, setShowChartPanel] = useState(false)
   const [showSyntaxPanel, setShowSyntaxPanel] = useState(false)
   const [showTaskReportPanel, setShowTaskReportPanel] = useState(false)
+  const [showKeywordConfigPanel, setShowKeywordConfigPanel] = useState(false)
   const [taskReports, setTaskReports] = useState<TaskReport[]>([])
   const [taskLogEntries, setTaskLogEntries] = useState<TaskLogEntry[]>([])
 
@@ -130,8 +140,8 @@ function App() {
   const handleFloodConfigChange = (config: FloodFilterConfig) => { setFloodFilterConfig(config); setSystemConfig({ ...systemConfig, floodFilter: config }); taskReportLogger.logInfo(null, 'CONFIG', `刷屏过滤配置已更新: 启用=${config.enabled}`) }
 
   const openPanel = (panelType: string) => {
-    setShowConfigPanel(false); setShowFloodFilterPanel(false); setShowChartPanel(false); setShowSyntaxPanel(false); setShowTaskReportPanel(false)
-    switch (panelType) { case 'config': setShowConfigPanel(true); taskReportLogger.logInfo(null, 'CONFIG', '打开配置面板'); break; case 'flood': setShowFloodFilterPanel(true); taskReportLogger.logInfo(null, 'SYSTEM', '打开刷屏过滤面板'); break; case 'chart': setShowChartPanel(true); taskReportLogger.logInfo(null, 'SYSTEM', '打开可视化图表面板'); break; case 'syntax': setShowSyntaxPanel(true); taskReportLogger.logInfo(null, 'SYNTAX_CHECK', '打开语法检查面板'); break; case 'task': setShowTaskReportPanel(true); taskReportLogger.logInfo(null, 'SYSTEM', '打开任务汇报面板'); break }
+    setShowConfigPanel(false); setShowFloodFilterPanel(false); setShowChartPanel(false); setShowSyntaxPanel(false); setShowTaskReportPanel(false); setShowKeywordConfigPanel(false)
+    switch (panelType) { case 'config': setShowConfigPanel(true); taskReportLogger.logInfo(null, 'CONFIG', '打开配置面板'); break; case 'flood': setShowFloodFilterPanel(true); taskReportLogger.logInfo(null, 'SYSTEM', '打开刷屏过滤面板'); break; case 'chart': setShowChartPanel(true); taskReportLogger.logInfo(null, 'SYSTEM', '打开可视化图表面板'); break; case 'syntax': setShowSyntaxPanel(true); taskReportLogger.logInfo(null, 'SYNTAX_CHECK', '打开语法检查面板'); break; case 'task': setShowTaskReportPanel(true); taskReportLogger.logInfo(null, 'SYSTEM', '打开任务汇报面板'); break; case 'keyword': setShowKeywordConfigPanel(true); taskReportLogger.logInfo(null, 'CONFIG', '打开关键字配置面板'); break }
     setTaskReports(taskReportLogger.getAllReports()); setTaskLogEntries(taskReportLogger.getLogEntries())
   }
 
@@ -143,11 +153,11 @@ function App() {
         onGoToLine={() => setShowGoToLine(true)} onThemeChange={setTheme} theme={theme} fontSize={fontSize}
         logFiles={logFiles} currentFileIndex={currentFileIndex} onFileChange={setCurrentFileIndex}
         onOpenConfig={() => openPanel('config')} onOpenFloodFilter={() => openPanel('flood')} onOpenChart={() => openPanel('chart')}
-        onOpenSyntaxCheck={() => openPanel('syntax')} onOpenTaskReport={() => openPanel('task')} />
+        onOpenSyntaxCheck={() => openPanel('syntax')} onOpenTaskReport={() => openPanel('task')} onOpenKeywordConfig={() => openPanel('keyword')} />
       <div className="main-content">
         {showHistory && <HistoryPanel history={history} onOpen={handleOpenFromHistory} onClear={() => setHistory([])} onClose={() => setShowHistory(false)} />}
         <div className="log-area">
-          {currentFile && <LogViewer content={displayContent} fontSize={fontSize} lineHeight={lineHeight} searchResults={searchResults} currentResultIndex={currentResultIndex} searchQuery={searchQuery} searchOptions={searchOptions} targetLine={targetLine} />}
+          {currentFile && <LogViewer content={displayContent} fontSize={fontSize} lineHeight={lineHeight} searchResults={searchResults} currentResultIndex={currentResultIndex} searchQuery={searchQuery} searchOptions={searchOptions} targetLine={targetLine} scrollSpeed={scrollSpeed} />}
           {!currentFile && <div className="welcome-screen"><h1>日志分析工具</h1><p>点击工具栏的"打开文件"或"打开文件夹"开始分析日志</p><div className="feature-hints"><p>新增功能:</p><ul><li>⚙️ 配置管理 - 通过JSON文件导入/导出配置</li><li>🚫 刷屏过滤 - 自动识别并过滤重复刷屏日志</li><li>📊 可视化图表 - 展示任务流程和状态</li><li>🔍 语法检查 - 支持多种编程语言语法检查</li><li>📋 任务汇报 - 规范记录系统操作和任务执行</li></ul></div></div>}
         </div>
         <ErrorAnalysisPane content={displayContent} errorKeywords={errorKeywords} onKeywordsChange={(keywords) => { setErrorKeywords(keywords); setSystemConfig({ ...systemConfig, errorKeywords: keywords }) }} />
@@ -155,11 +165,12 @@ function App() {
       {currentFile && <SearchPanel onSearch={handleSearch} searchResults={searchResults} currentResultIndex={currentResultIndex} onNavigate={navigateResult} />}
       {currentFile && <GoToLine onGoToLine={handleGoToLine} totalLines={displayContent.split('\n').length} isVisible={showGoToLine} onClose={() => setShowGoToLine(false)} />}
       {currentFile && <SearchDialog isVisible={showSearchDialog} onClose={() => setShowSearchDialog(false)} onSearch={handleSearch} searchResults={searchResults} currentResultIndex={currentResultIndex} onNavigate={navigateResult} initialQuery={searchQuery} />}
-      {showConfigPanel && <ConfigPanel currentConfig={systemConfig} onConfigLoad={handleConfigLoad} onExport={handleConfigExport} onClose={() => setShowConfigPanel(false)} />}
+      {showConfigPanel && <ConfigPanel currentConfig={systemConfig} onConfigLoad={handleConfigLoad} onExport={handleConfigExport} onClose={() => setShowConfigPanel(false)} onScrollSpeedChange={setScrollSpeed} />}
       {showFloodFilterPanel && <FloodFilterPanel config={floodFilterConfig} onConfigChange={handleFloodConfigChange} stats={floodStats} onClose={() => setShowFloodFilterPanel(false)} />}
-      {showChartPanel && <ChartPanel taskReports={taskReports} onClose={() => setShowChartPanel(false)} />}
+      {showChartPanel && <ChartPanel taskReports={taskReports} logContent={currentFile?.content || ''} onClose={() => setShowChartPanel(false)} />}
       {showSyntaxPanel && <SyntaxCheckPanel onClose={() => setShowSyntaxPanel(false)} />}
       {showTaskReportPanel && <TaskReportPanel reports={taskReports} entries={taskLogEntries} onSaveLog={() => {}} onClose={() => setShowTaskReportPanel(false)} />}
+      {showKeywordConfigPanel && <KeywordConfigPanel onClose={() => setShowKeywordConfigPanel(false)} />}
     </div>
   )
 }
