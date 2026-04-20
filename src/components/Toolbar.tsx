@@ -21,6 +21,7 @@ interface ToolbarProps {
   onOpenSyntaxCheck: () => void
   onOpenTaskReport: () => void
   onOpenKeywordConfig: () => void
+  onOpenAbout: () => void
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -41,7 +42,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onOpenChart,
   onOpenSyntaxCheck,
   onOpenTaskReport,
-  onOpenKeywordConfig
+  onOpenKeywordConfig,
+  onOpenAbout
 }) => {
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const [showToolsMenu, setShowToolsMenu] = useState(false)
@@ -150,6 +152,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
               >
                 <span className="option-icon">🔑</span>
                 关键字配置
+              </button>
+              <div className="toolbar-menu-divider"></div>
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenAbout()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">ℹ️</span>
+                关于
               </button>
             </div>
           )}

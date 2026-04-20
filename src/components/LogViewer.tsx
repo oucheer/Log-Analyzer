@@ -12,7 +12,6 @@ interface LogViewerProps {
   searchQuery: string
   searchOptions: SearchOptions
   targetLine?: number
-  scrollSpeed?: number
 }
 
 const LogViewer: React.FC<LogViewerProps> = ({
@@ -23,8 +22,7 @@ const LogViewer: React.FC<LogViewerProps> = ({
   currentResultIndex,
   searchQuery,
   searchOptions,
-  targetLine,
-  scrollSpeed = 1
+  targetLine
 }) => {
   const listRef = useRef<List>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -32,22 +30,6 @@ const LogViewer: React.FC<LogViewerProps> = ({
   const lines = useMemo(() => content.split('\n'), [content])
   const lineCount = lines.length
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  const handleWheel = useCallback((e: WheelEvent) => {
-    if (scrollSpeed !== 1 && scrollRef.current) {
-      e.preventDefault()
-      const scrollAmount = e.deltaY * scrollSpeed
-      scrollRef.current.scrollTop += scrollAmount
-    }
-  }, [scrollSpeed])
-
-  useEffect(() => {
-    const container = scrollRef.current
-    if (container && scrollSpeed !== 1) {
-      container.addEventListener('wheel', handleWheel, { passive: false })
-      return () => container.removeEventListener('wheel', handleWheel)
-    }
-  }, [handleWheel, scrollSpeed])
 
   const updateHeight = useCallback(() => {
     if (containerRef.current) {

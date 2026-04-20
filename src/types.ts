@@ -51,10 +51,6 @@ export interface SystemConfig {
     enabled: boolean
     language: string
   }
-  mouseWheel: {
-    speed: number
-    syncOS: boolean
-  }
 }
 
 export const defaultSystemConfig: SystemConfig = {
@@ -77,10 +73,6 @@ export const defaultSystemConfig: SystemConfig = {
   syntaxCheck: {
     enabled: true,
     language: 'javascript'
-  },
-  mouseWheel: {
-    speed: 1,
-    syncOS: true
   }
 }
 
@@ -181,6 +173,9 @@ export interface WorkflowAnalysis {
     longestStep: string
     mostFrequentError: string
     successRate: number
+    totalErrors?: number
+    warningCount?: number
+    suggestions?: string[]
   }
   generatedAt: string
 }
