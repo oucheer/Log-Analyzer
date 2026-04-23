@@ -179,3 +179,99 @@ export interface WorkflowAnalysis {
   }
   generatedAt: string
 }
+
+export interface RepoFile {
+  path: string
+  module: string
+  description?: string
+}
+
+export interface ApiInfo {
+  name: string
+  file: string
+  description: string
+  method?: string
+  endpoint?: string
+}
+
+export interface BranchInfo {
+  name: string
+  description: string
+  severity?: 'error' | 'warning' | 'info'
+}
+
+export interface ExceptionKeyword {
+  keyword: string
+  branch: string
+  suggestion: string
+  severity?: 'error' | 'warning' | 'info'
+}
+
+export interface LogKeyword {
+  keyword: string
+  api?: string
+  suggestion: string
+  severity?: 'error' | 'warning' | 'info'
+}
+
+export interface KeywordMapping {
+  keyword: string
+  type: 'exception' | 'log'
+  filePath?: string
+  apiName?: string
+  branch?: string
+  mode?: string
+  suggestion: string
+  severity?: 'error' | 'warning' | 'info'
+}
+
+export interface ProcessingSuggestion {
+  id: string
+  title: string
+  content: string
+  priority: number
+}
+
+export interface EnhancedConfig {
+  version: string
+  repository: {
+    name: string
+    files: RepoFile[]
+  }
+  apis: ApiInfo[]
+  branches: BranchInfo[]
+  exceptionKeywords: ExceptionKeyword[]
+  logKeywords: LogKeyword[]
+  mappings: KeywordMapping[]
+  suggestions: ProcessingSuggestion[]
+}
+
+export interface EnhancedMatchResult {
+  id: string
+  keyword: string
+  type: 'exception' | 'log'
+  line: number
+  context: string
+  filePath?: string
+  apiName?: string
+  branch?: string
+  mode?: string
+  suggestion: string
+  severity?: 'error' | 'warning' | 'info'
+}
+
+export interface JobLogKeyword {
+  id: string
+  keyword: string
+  description: string
+  enabled: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface JobLogExtractResult {
+  extractedContent: string
+  startLine: number
+  matchedKeyword: string | null
+  totalJobs: number
+}

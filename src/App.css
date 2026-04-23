@@ -93,12 +93,14 @@
   flex-direction: column;
   height: 100vh;
   background: var(--bg-primary);
+  overflow: hidden;
 }
 
 .main-content {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .log-area {
@@ -155,4 +157,104 @@
   padding: 8px 12px;
   background: var(--bg-tertiary);
   border-radius: 4px;
+  margin: 4px 0;
+}
+
+.joblog-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  gap: 8px;
+}
+
+.joblog-control-bar.collapsed {
+  padding: 4px 8px;
+  justify-content: flex-start;
+}
+
+.joblog-control-bar .collapse-toggle {
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  transition: all 0.2s;
+}
+
+.joblog-control-bar .collapse-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.joblog-control-bar .current-info {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.joblog-control-bar .control-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.joblog-control-bar .control-buttons button {
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+}
+
+.joblog-control-bar .control-buttons button:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.joblog-control-bar .control-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.joblog-control-bar .control-buttons .restore-btn {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #fff;
+}
+
+.joblog-control-bar .control-buttons .restore-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.joblog-control-bar .history-info {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.joblog-control-bar .collapsed-info {
+  font-size: 11px;
+  color: var(--accent-color);
+  font-weight: 500;
+  margin-left: 4px;
 }

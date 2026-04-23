@@ -246,3 +246,45 @@
 .option-icon {
   font-size: 16px;
 }
+
+.help-wrapper {
+  position: relative;
+}
+
+.help-btn {
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.help-label {
+  font-size: 14px;
+}
+
+.help-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  z-index: 100;
+  min-width: 120px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

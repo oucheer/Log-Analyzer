@@ -15,7 +15,7 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isVisible, onClose }) => {
         <div className="about-header">
           <div className="about-logo">📋</div>
           <h2>Log Analyzer</h2>
-          <span className="about-version">V0.1</span>
+          <span className="about-version">V0.2</span>
         </div>
         
         <div className="about-body">
@@ -23,7 +23,7 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isVisible, onClose }) => {
             <h3>产品介绍</h3>
             <p>
               Log Analyzer 是一款功能强大的跨平台日志分析桌面应用程序，专为高效查看和分析日志文件而设计。
-              该工具能够帮助开发者和运维人员快速定位问题、分析日志模式，提高工作效率。
+              该工具能够帮助开发者和运维人员快速定位问题，分析日志模式，提高工作效率。
             </p>
           </div>
 
@@ -38,6 +38,18 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isVisible, onClose }) => {
               <li>📜 <strong>双向滚动</strong> - 支持垂直和水平滚动</li>
               <li>⚡ <strong>虚拟滚动</strong> - 高效处理大文件（100MB+）</li>
               <li>⌨️ <strong>快捷键</strong> - 支持Ctrl+F搜索、Ctrl+G跳转行号等</li>
+              <li>🤖 <strong>智能分析</strong> - 支持JSON配置导入和多配置管理</li>
+              <li>📋 <strong>作业日志提取</strong> - 支持关键字驱动的作业日志提取</li>
+            </ul>
+          </div>
+
+          <div className="about-section">
+            <h3>V0.2 更新内容</h3>
+            <ul className="about-updates">
+              <li>✨ <strong>作业日志提取功能</strong> - 新增关键字配置界面，支持添加、修改、删除关键字，自动识别并提取最后一次作业日志</li>
+              <li>✨ <strong>智能分析增强</strong> - 支持JSON配置文件导入，支持多配置管理，智能匹配异常关键字和建议</li>
+              <li>🐛 <strong>UI优化</strong> - 修复界面显示异常问题，优化布局结构</li>
+              <li>⚙️ <strong>配置增强</strong> - 支持导入/导出关键字配置，配置持久化存储</li>
             </ul>
           </div>
 
@@ -46,7 +58,7 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isVisible, onClose }) => {
             <div className="about-info">
               <div className="info-row">
                 <span className="info-label">版本号：</span>
-                <span className="info-value">V0.1</span>
+                <span className="info-value">V0.2</span>
               </div>
               <div className="info-row">
                 <span className="info-label">作者：</span>
@@ -58,7 +70,7 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isVisible, onClose }) => {
               </div>
               <div className="info-row">
                 <span className="info-label">发布日期：</span>
-                <span className="info-value">2026-03-16</span>
+                <span className="info-value">2026-04-22</span>
               </div>
             </div>
           </div>

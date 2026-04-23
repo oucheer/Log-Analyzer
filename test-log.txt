@@ -1,0 +1,57 @@
+2026-03-16 10:00:00 [INFO] Application started successfully
+2026-03-16 10:00:01 [INFO] Initializing print module
+2026-03-16 10:00:02 [INFO] Loading configuration from config.json
+2026-03-16 10:00:03 [INFO] Connecting to print service...
+2026-03-16 10:00:05 [INFO] Print service connected successfully
+2026-03-16 10:00:10 [INFO] User requested to print document: report.pdf
+2026-03-16 10:00:12 [INFO] Preparing print job for document report.pdf
+2026-03-16 10:00:15 [DEBUG] Loading printer driver: HP_LaserJet_5000
+2026-03-16 10:00:16 [DEBUG] Printer status: Ready
+2026-03-16 10:00:18 [INFO] Starting print job: JobID=12345
+2026-03-16 10:00:25 [WARNING] print_timeout detected while waiting for printer response
+2026-03-16 10:00:26 [ERROR] print_err: Printer not responding after 30 seconds
+2026-03-16 10:00:27 [INFO] Retrying print operation (attempt 1/3)
+2026-03-16 10:00:30 [WARNING] timeout occurred during data transfer
+2026-03-16 10:00:31 [ERROR] connection_refused: Print service socket closed unexpectedly
+2026-03-16 10:00:35 [INFO] Checking network connectivity...
+2026-03-16 10:00:36 [DEBUG] Network status: Connected but slow
+2026-03-16 10:00:40 [INFO] Switching to backup print server
+2026-03-16 10:00:42 [DEBUG] Backup server: print-backup.local:9100
+2026-03-16 10:00:45 [INFO] retry connection to backup server
+2026-03-16 10:00:50 [INFO] Backup server connection established
+2026-03-16 10:01:00 [INFO] Resuming print job: JobID=12345
+2026-03-16 10:01:30 [INFO] Print job completed successfully
+2026-03-16 10:01:31 [INFO] Job completion status: SUCCESS
+2026-03-16 10:02:00 [INFO] Starting scan operation
+2026-03-16 10:02:05 [DEBUG] Loading scanner driver: Canon_CanoScan_9000F
+2026-03-16 10:02:06 [DEBUG] Scanner status: Initializing
+2026-03-16 10:02:10 [WARNING] Scanner calibration required
+2026-03-16 10:02:15 [INFO] Placing document on scanner glass
+2026-03-16 10:02:20 [INFO] Starting scan: Resolution=300dpi, Format=PDF
+2026-03-16 10:02:25 [ERROR] scan_err: Document feeder jam detected
+2026-03-16 10:02:26 [INFO] Attempting to clear paper jam
+2026-03-16 10:02:30 [DEBUG] Paper jam cleared successfully
+2026-03-16 10:02:35 [INFO] Retrying scan operation
+2026-03-16 10:02:40 [ERROR] scan_fail: Scanner communication error
+2026-03-16 10:02:41 [WARNING] Scanner disconnected unexpectedly
+2026-03-16 10:02:45 [INFO] Reconnecting to scanner...
+2026-03-16 10:02:50 [DEBUG] USB connection restored
+2026-03-16 10:02:55 [INFO] Scan operation resumed
+2026-03-16 10:03:00 [INFO] Scan completed successfully
+2026-03-16 10:03:05 [INFO] Saving scanned document: scan_20260316_100305.pdf
+2026-03-16 10:03:10 [INFO] File saved to: C:\Users\Admin\Documents\scans\
+2026-03-16 10:03:15 [INFO] Starting file copy operation
+2026-03-16 10:03:20 [DEBUG] Source: D:\Backup\data.zip
+2026-03-16 10:03:20 [DEBUG] Destination: \\Server\Backup\data.zip
+2026-03-16 10:03:25 [INFO] Copying file: progress 25%
+2026-03-16 10:03:30 [WARNING] Slow network detected, retry required
+2026-03-16 10:03:31 [INFO] retry copy operation due to network latency
+2026-03-16 10:03:40 [INFO] Copying file: progress 50%
+2026-03-16 10:03:50 [INFO] Copying file: progress 75%
+2026-03-16 10:04:00 [INFO] Copying file: progress 100%
+2026-03-16 10:04:05 [INFO] File copy completed successfully
+2026-03-16 10:04:10 [INFO] Verifying file integrity...
+2026-03-16 10:04:15 [INFO] File integrity verified: MD5 match
+2026-03-16 10:04:20 [INFO] All operations completed successfully
+2026-03-16 10:04:25 [INFO] Application shutting down
+2026-03-16 10:04:30 [INFO] Shutdown complete

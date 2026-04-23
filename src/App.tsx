@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { LogFile, ErrorKeyword, SearchOptions, SearchResult, Theme, FloodFilterConfig, SystemConfig, defaultSystemConfig, FloodStats } from './types'
+import { LogFile, ErrorKeyword, SearchOptions, SearchResult, Theme, FloodFilterConfig, SystemConfig, defaultSystemConfig, FloodStats, JobLogExtractResult } from './types'
 import { TaskReport, TaskLogEntry } from './types/taskReport'
 import Toolbar from './components/Toolbar'
 import LogViewer from './components/LogViewer'
@@ -15,8 +15,11 @@ import SyntaxCheckPanel from './components/SyntaxCheckPanel'
 import TaskReportPanel from './components/TaskReportPanel'
 import KeywordConfigPanel from './components/KeywordConfigPanel'
 import AboutDialog from './components/AboutDialog'
+import EnhancedAnalysisPane from './components/EnhancedAnalysisPane'
+import JobLogKeywordPanel from './components/JobLogKeywordPanel'
 import { floodFilter } from './utils/FloodFilter'
 import { taskReportLogger } from './utils/TaskReportLogger'
+import { jobLogManager } from './utils/JobLogManager'
 import './App.css'
 
 interface ElectronAPI {
@@ -59,6 +62,14 @@ function App() {
   const [showTaskReportPanel, setShowTaskReportPanel] = useState(false)
   const [showKeywordConfigPanel, setShowKeywordConfigPanel] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
+  const [showEnhancedAnalysis, setShowEnhancedAnalysis] = useState(false)
+  const [showJobLogPanel, setShowJobLogPanel] = useState(false)
+  const [jobLogExtracted, setJobLogExtracted] = useState(false)
+  const [jobLogContent, setJobLogContent] = useState<string | null>(null)
+  const [originalContent, setOriginalContent] = useState<string | null>(null)
+  const [extractionHistory, setExtractionHistory] = useState<JobLogExtractResult[]>([])
+  const [historyIndex, setHistoryIndex] = useState<number>(-1)
+  const [isControlBarCollapsed, setIsControlBarCollapsed] = useState(false)
   const [taskReports, setTaskReports] = useState<TaskReport[]>([])
   const [taskLogEntries, setTaskLogEntries] = useState<TaskLogEntry[]>([])
 
@@ -85,7 +96,11 @@ function App() {
 
   const addToHistory = (path: string) => { setHistory(prev => [path, ...prev.filter(p => p !== path)].slice(0, 20)) }
   const currentFile = logFiles[currentFileIndex]
-  const displayContent = floodFilterConfig.enabled && filteredContent ? filteredContent : (currentFile?.content || '')
+  const baseContent = floodFilterConfig.enabled && filteredContent ? filteredContent : (currentFile?.content || '')
+  const isShowingOriginal = !jobLogExtracted && originalContent !== null
+  const displayContent = isShowingOriginal 
+    ? originalContent 
+    : (jobLogExtracted && jobLogContent ? jobLogContent : baseContent)
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === 'g') { e.preventDefault(); if (currentFile) setShowGoToLine(true) } else if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); if (currentFile) setShowSearchDialog(true) } }
@@ -96,7 +111,7 @@ function App() {
     const taskId = `open-file-${Date.now()}`; taskReportLogger.createTask(taskId, '打开文件')
     try {
       const result = await window.electronAPI.selectFile()
-      if (result) { setLogFiles([result]); setCurrentFileIndex(0); addToHistory(result.filePath); taskReportLogger.logSuccess(taskId, 'FILE_OPERATION', `成功打开文件: ${result.fileName}`); taskReportLogger.completeTask(taskId, 'completed', `文件已加载: ${result.fileName}`) }
+      if (result) { setLogFiles([result]); setCurrentFileIndex(0); setJobLogExtracted(false); setJobLogContent(null); setOriginalContent(null); setExtractionHistory([]); setHistoryIndex(-1); addToHistory(result.filePath); taskReportLogger.logSuccess(taskId, 'FILE_OPERATION', `成功打开文件: ${result.fileName}`); taskReportLogger.completeTask(taskId, 'completed', `文件已加载: ${result.fileName}`) }
       else { taskReportLogger.logWarning(taskId, 'FILE_OPERATION', '用户取消了文件选择'); taskReportLogger.completeTask(taskId, 'failed', '用户取消了操作') }
     } catch (err) { taskReportLogger.logError(taskId, 'FILE_OPERATION', `打开文件失败: ${err}`); taskReportLogger.completeTask(taskId, 'failed', '操作失败') }
     setTaskReports(taskReportLogger.getAllReports()); setTaskLogEntries(taskReportLogger.getLogEntries())
@@ -106,7 +121,7 @@ function App() {
     const taskId = `open-folder-${Date.now()}`; taskReportLogger.createTask(taskId, '打开文件夹')
     try {
       const result = await window.electronAPI.selectFolder()
-      if (result && result.files.length > 0) { setLogFiles(result.files); setCurrentFileIndex(0); result.files.forEach((f: LogFile) => addToHistory(f.filePath)); taskReportLogger.logSuccess(taskId, 'FILE_OPERATION', `成功打开文件夹，加载了 ${result.files.length} 个文件`); taskReportLogger.completeTask(taskId, 'completed', `已加载 ${result.files.length} 个日志文件`) }
+      if (result && result.files.length > 0) { setLogFiles(result.files); setCurrentFileIndex(0); setJobLogExtracted(false); setJobLogContent(null); setOriginalContent(null); setExtractionHistory([]); setHistoryIndex(-1); result.files.forEach((f: LogFile) => addToHistory(f.filePath)); taskReportLogger.logSuccess(taskId, 'FILE_OPERATION', `成功打开文件夹，加载了 ${result.files.length} 个文件`); taskReportLogger.completeTask(taskId, 'completed', `已加载 ${result.files.length} 个日志文件`) }
       else { taskReportLogger.logWarning(taskId, 'FILE_OPERATION', '用户取消了文件夹选择'); taskReportLogger.completeTask(taskId, 'failed', '用户取消了操作') }
     } catch (err) { taskReportLogger.logError(taskId, 'FILE_OPERATION', `打开文件夹失败: ${err}`); taskReportLogger.completeTask(taskId, 'failed', '操作失败') }
     setTaskReports(taskReportLogger.getAllReports()); setTaskLogEntries(taskReportLogger.getLogEntries())
@@ -114,7 +129,20 @@ function App() {
 
   const handleOpenFromHistory = async (filePath: string) => {
     const result = await window.electronAPI.readFile(filePath)
-    if (result) { const exists = logFiles.some(f => f.filePath === filePath); if (!exists) { setLogFiles(prev => [...prev, result]); setCurrentFileIndex(logFiles.length) } else { setCurrentFileIndex(logFiles.findIndex(f => f.filePath === filePath)) } }
+    if (result) { 
+      const exists = logFiles.some(f => f.filePath === filePath)
+      if (!exists) { 
+        setLogFiles(prev => [...prev, result]); 
+        setCurrentFileIndex(logFiles.length) 
+      } else { 
+        setCurrentFileIndex(logFiles.findIndex(f => f.filePath === filePath)) 
+      }
+      setJobLogExtracted(false)
+      setJobLogContent(null)
+      setOriginalContent(null)
+      setExtractionHistory([])
+      setHistoryIndex(-1)
+    }
   }
 
   const handleSearch = useCallback((query: string, options: SearchOptions) => {
@@ -132,6 +160,50 @@ function App() {
   const handleConfigLoad = (config: SystemConfig) => { setSystemConfig(config); setErrorKeywords(config.errorKeywords); setFloodFilterConfig(config.floodFilter); taskReportLogger.logInfo(null, 'CONFIG', '已从JSON文件加载系统配置') }
   const handleConfigExport = async () => { const success = await window.electronAPI.saveJson(systemConfig, 'system-config.json'); if (success) taskReportLogger.logSuccess(null, 'CONFIG', '配置导出成功') }
   const handleFloodConfigChange = (config: FloodFilterConfig) => { setFloodFilterConfig(config); setSystemConfig({ ...systemConfig, floodFilter: config }); taskReportLogger.logInfo(null, 'CONFIG', `刷屏过滤配置已更新: 启用=${config.enabled}`) }
+  const handleJobLogExtract = (result: JobLogExtractResult) => {
+    setOriginalContent(currentFile?.content || null)
+    setJobLogExtracted(true)
+    setJobLogContent(result.extractedContent)
+    setExtractionHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1)
+      newHistory.push(result)
+      return newHistory
+    })
+    setHistoryIndex(prev => prev + 1)
+    setShowJobLogPanel(false)
+    taskReportLogger.logInfo(null, 'JOB_LOG', `提取最后一次作业日志，起始行: ${result.startLine + 1}，匹配关键字: ${result.matchedKeyword || '无'}`)
+  }
+  const toggleJobLogExtract = () => {
+    if (!jobLogManager.hasEnabledKeywords()) {
+      setShowJobLogPanel(true)
+      return
+    }
+    setJobLogExtracted(prev => !prev)
+    taskReportLogger.logInfo(null, 'JOB_LOG', jobLogExtracted ? '已恢复完整日志显示' : '已启用最后一次作业日志提取')
+  }
+  const restoreOriginalLog = () => {
+    setJobLogExtracted(false)
+    setHistoryIndex(-1)
+    setTimeout(() => setOriginalContent(null), 100)
+    taskReportLogger.logInfo(null, 'JOB_LOG', '已恢复原始日志')
+  }
+  const viewPreviousResult = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1
+      setHistoryIndex(newIndex)
+      setJobLogContent(extractionHistory[newIndex].extractedContent)
+      taskReportLogger.logInfo(null, 'JOB_LOG', `查看第 ${newIndex + 1} 个提取结果`)
+    }
+  }
+  const viewNextResult = () => {
+    if (historyIndex < extractionHistory.length - 1) {
+      const newIndex = historyIndex + 1
+      setHistoryIndex(newIndex)
+      setJobLogContent(extractionHistory[newIndex].extractedContent)
+      taskReportLogger.logInfo(null, 'JOB_LOG', `查看第 ${newIndex + 1} 个提取结果`)
+    }
+  }
+  const toggleControlBar = () => setIsControlBarCollapsed(prev => !prev)
 
   const openPanel = (panelType: string) => {
     setShowConfigPanel(false); setShowFloodFilterPanel(false); setShowChartPanel(false); setShowSyntaxPanel(false); setShowTaskReportPanel(false); setShowKeywordConfigPanel(false)
@@ -145,18 +217,71 @@ function App() {
         onIncreaseFont={() => { setFontSize(p => Math.min(p + 2, 32)); setLineHeight(p => Math.min(p + 3, 48)) }}
         onDecreaseFont={() => { setFontSize(p => Math.max(p - 2, 8)); setLineHeight(p => Math.max(p - 3, 12)) }}
         onGoToLine={() => setShowGoToLine(true)} onThemeChange={setTheme} theme={theme} fontSize={fontSize}
-        logFiles={logFiles} currentFileIndex={currentFileIndex} onFileChange={setCurrentFileIndex}
+        logFiles={logFiles} currentFileIndex={currentFileIndex} onFileChange={(index) => { setCurrentFileIndex(index); setJobLogExtracted(false); setJobLogContent(null); setOriginalContent(null); setExtractionHistory([]); setHistoryIndex(-1) }}
         onOpenConfig={() => openPanel('config')} onOpenFloodFilter={() => openPanel('flood')} onOpenChart={() => openPanel('chart')}
         onOpenSyntaxCheck={() => openPanel('syntax')} onOpenTaskReport={() => openPanel('task')} onOpenKeywordConfig={() => openPanel('keyword')}
-        onOpenAbout={() => setShowAbout(true)} />
+        onOpenAbout={() => setShowAbout(true)} onOpenEnhancedAnalysis={() => setShowEnhancedAnalysis(true)}
+        onOpenJobLogConfig={() => setShowJobLogPanel(true)} />
       <div className="main-content">
         {showHistory && <HistoryPanel history={history} onOpen={handleOpenFromHistory} onClear={() => setHistory([])} onClose={() => setShowHistory(false)} />}
+        {jobLogExtracted && extractionHistory.length > 0 && (
+          <div className={`joblog-control-bar ${isControlBarCollapsed ? 'collapsed' : ''}`}>
+            <button className="collapse-toggle" onClick={toggleControlBar} title={isControlBarCollapsed ? '展开' : '折叠'}>
+              {isControlBarCollapsed ? '▶' : '◀'}
+            </button>
+            {!isControlBarCollapsed && (
+              <>
+                <span className="current-info">
+                  {historyIndex >= 0 
+                    ? `当前: 第 ${historyIndex + 1} 个结果 (${extractionHistory[historyIndex].matchedKeyword || '无关键字'})`
+                    : '当前: 最后一次提取'}
+                </span>
+                <div className="control-buttons">
+                  <button 
+                    onClick={viewPreviousResult}
+                    disabled={historyIndex <= 0}
+                    title="查看上一个结果"
+                  >
+                    ◀
+                  </button>
+                  <button 
+                    onClick={restoreOriginalLog}
+                    className="restore-btn"
+                    title="恢复原始日志"
+                  >
+                    🔄
+                  </button>
+                  <button 
+                    onClick={viewNextResult}
+                    disabled={historyIndex >= extractionHistory.length - 1}
+                    title="查看下一个结果"
+                  >
+                    ▶
+                  </button>
+                </div>
+                <span className="history-info">
+                  共 {extractionHistory.length} 个
+                </span>
+              </>
+            )}
+            {isControlBarCollapsed && (
+              <span className="collapsed-info">
+                {historyIndex >= 0 
+                  ? `#${historyIndex + 1}`
+                  : '提取中'}
+              </span>
+            )}
+          </div>
+        )}
         <div className="log-area">
           {currentFile && <LogViewer content={displayContent} fontSize={fontSize} lineHeight={lineHeight} searchResults={searchResults} currentResultIndex={currentResultIndex} searchQuery={searchQuery} searchOptions={searchOptions} targetLine={targetLine} />}
           {!currentFile && <div className="welcome-screen"><h1>日志分析工具</h1><p>点击工具栏的"打开文件"或"打开文件夹"开始分析日志</p><div className="feature-hints"><p>新增功能:</p><ul><li>⚙️ 配置管理 - 通过JSON文件导入/导出配置</li><li>🚫 刷屏过滤 - 自动识别并过滤重复刷屏日志</li><li>📊 可视化图表 - 展示任务流程和状态</li><li>🔍 语法检查 - 支持多种编程语言语法检查</li><li>📋 任务汇报 - 规范记录系统操作和任务执行</li></ul></div></div>}
         </div>
         <ErrorAnalysisPane content={displayContent} errorKeywords={errorKeywords} onKeywordsChange={(keywords) => { setErrorKeywords(keywords); setSystemConfig({ ...systemConfig, errorKeywords: keywords }) }} />
       </div>
+      {showEnhancedAnalysis && (
+        <EnhancedAnalysisPane content={displayContent} onClose={() => setShowEnhancedAnalysis(false)} />
+      )}
       {currentFile && <SearchPanel onSearch={handleSearch} searchResults={searchResults} currentResultIndex={currentResultIndex} onNavigate={navigateResult} />}
       {currentFile && <GoToLine onGoToLine={handleGoToLine} totalLines={displayContent.split('\n').length} isVisible={showGoToLine} onClose={() => setShowGoToLine(false)} />}
       {currentFile && <SearchDialog isVisible={showSearchDialog} onClose={() => setShowSearchDialog(false)} onSearch={handleSearch} searchResults={searchResults} currentResultIndex={currentResultIndex} onNavigate={navigateResult} initialQuery={searchQuery} />}
@@ -167,6 +292,12 @@ function App() {
       {showTaskReportPanel && <TaskReportPanel reports={taskReports} entries={taskLogEntries} onSaveLog={() => {}} onClose={() => setShowTaskReportPanel(false)} />}
       {showKeywordConfigPanel && <KeywordConfigPanel onClose={() => setShowKeywordConfigPanel(false)} />}
       <AboutDialog isVisible={showAbout} onClose={() => setShowAbout(false)} />
+      <JobLogKeywordPanel
+        isVisible={showJobLogPanel}
+        onClose={() => setShowJobLogPanel(false)}
+        content={currentFile?.content}
+        onExtract={handleJobLogExtract}
+      />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 {
   "name": "log-analyzer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cross-platform log analyzer desktop application",
   "main": "dist/electron/main.js",
   "scripts": {
@@ -37,7 +37,7 @@
     "appId": "com.loganalyzer.app",
     "productName": "Log Analyzer",
     "directories": {
-      "output": "release-final"
+      "output": "release-v0.2.1"
     },
     "files": [
       "dist/**/*",

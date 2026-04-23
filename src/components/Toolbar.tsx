@@ -22,6 +22,8 @@ interface ToolbarProps {
   onOpenTaskReport: () => void
   onOpenKeywordConfig: () => void
   onOpenAbout: () => void
+  onOpenEnhancedAnalysis: () => void
+  onOpenJobLogConfig: () => void
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -43,10 +45,13 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onOpenSyntaxCheck,
   onOpenTaskReport,
   onOpenKeywordConfig,
-  onOpenAbout
+  onOpenAbout,
+  onOpenEnhancedAnalysis,
+  onOpenJobLogConfig
 }) => {
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const [showToolsMenu, setShowToolsMenu] = useState(false)
+  const [showHelpMenu, setShowHelpMenu] = useState(false)
 
   return (
     <div className="toolbar">
@@ -153,6 +158,26 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 <span className="option-icon">🔑</span>
                 关键字配置
               </button>
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenJobLogConfig()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">📋</span>
+                作业日志配置
+              </button>
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenEnhancedAnalysis()
+                  setShowToolsMenu(false)
+                }}
+              >
+                <span className="option-icon">🤖</span>
+                智能分析
+              </button>
               <div className="toolbar-menu-divider"></div>
               <button
                 className="tool-option"
@@ -239,6 +264,31 @@ const Toolbar: React.FC<ToolbarProps> = ({
         <button className="toolbar-btn" onClick={onIncreaseFont} title="增大字体 (Ctrl++)">
           <span className="icon">A+</span>
         </button>
+        <div className="toolbar-divider"></div>
+        <div className="help-wrapper" style={{ position: 'relative' }}>
+          <button
+            className="toolbar-btn help-btn"
+            onClick={() => setShowHelpMenu(!showHelpMenu)}
+            title="帮助"
+          >
+            <span className="icon">❓</span>
+            <span className="help-label">帮助</span>
+          </button>
+          {showHelpMenu && (
+            <div className="help-menu">
+              <button
+                className="tool-option"
+                onClick={() => {
+                  onOpenAbout()
+                  setShowHelpMenu(false)
+                }}
+              >
+                <span className="option-icon">ℹ️</span>
+                关于
+              </button>
+            </div>
+          )}
+        </div>
         <div className="toolbar-divider"></div>
         <button className="toolbar-btn" onClick={onGoToLine} title="跳转至指定行 (Ctrl+G)">
           <span className="icon">📍</span>

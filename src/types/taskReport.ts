@@ -25,7 +25,8 @@ export const LOG_CATEGORIES = {
   SYNTAX_CHECK: '语法检查',
   CONFIG: '配置管理',
   SYSTEM: '系统',
-  TASK: '任务'
+  TASK: '任务',
+  JOB_LOG: '作业日志'
 } as const
 
 export type LogCategory = keyof typeof LOG_CATEGORIES

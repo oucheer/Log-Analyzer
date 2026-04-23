@@ -135,6 +135,29 @@
   color: var(--accent-color);
 }
 
+.about-updates {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.about-updates li {
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--accent-color);
+}
+
+.about-updates li strong {
+  color: var(--accent-color);
+}
+
 .about-info {
   background: var(--bg-tertiary);
   border-radius: 8px;
